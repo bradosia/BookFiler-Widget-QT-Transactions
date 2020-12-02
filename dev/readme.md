@@ -47,6 +47,26 @@ There is already a partial implementation for the transaction model to give an e
 
 Most of the time, in memory `sqlite3` databases will be used so using sql queries to refetch the `sqlite3` database table should be quick. Similar to `QSqlTableModel`, the `TreeModel` also has `setSort` and `setFilter` methods, but the usage is different. See the header file [/src/UI/TransactionModel.hpp](/src/UI/TransactionModel.hpp) for my notes on these methods.
 
+## What does the `sqlite3` table look like?
+
+Here is the create statement for the table.
+```sql
+CREATE TABLE "transactionTest" (
+	"guid"	TEXT NOT NULL,
+	"date"	TEXT,
+	"num"	TEXT,
+	"description"	TEXT,
+	"notes"	TEXT,
+	"transfer"	TEXT,
+	"R"	TEXT,
+	"L"	TEXT,
+	"Tot Increase"	INTEGER,
+	"Tot Decrease"	INTEGER,
+	"Balance"	INTEGER,
+	PRIMARY KEY("guid")
+)
+```
+
 # Libraries, Compiler, and compatability
 
 The Libraries used are QT, Boost, and sqlite3. Other libraries need to be approved before use.
