@@ -89,9 +89,11 @@ Separate all graphical GUI code into the `/src/UI/` directory. Anything with `QT
 ## Deliverables
 
 * Clean and commented code that follows the general design already provided and discussed in the readme.
-* Widget works and looks as the photos reference images show.
-* Make a working example [/src_example/example00/main.cpp](/src_example/example00/main.cpp).
+* View and model properly separated
+* model designed with a sqlite3 backend
+* Make a working example
+* Should be able to click the header column titles to re-order ascending and descending order
 * transaction cells are selectable and copyable as tab separated values in the clipboard.
-* Columns can be re-ordered
-* Headers can toggle the sort order
+* Double clicking on a field will make it editable
+* Able to drag and reorder the columns
 
