@@ -36,7 +36,7 @@ The user should be able to select cells by clicking on them. They are able to se
 
 The widget view is updated when the controller calls `update(...)`
 
-# SqliteModel component
+# Model component: `SqliteModel`
 
 The SqliteModel is a `QAbstractItemModel` with a sqlite3 backend similar to `QSqlTableModel`. This is the data model used with the view widget. It is specialized to use `sqlite3`.
 
