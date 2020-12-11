@@ -1,12 +1,14 @@
 /*
- * @name BookFiler Widget - Transaction Widget
+ * @name BookFiler Widget - Sqlite Model
+ * @author Branden Lee
  * @version 1.00
  * @license MIT
- * @brief sqlite3 backend
+ * @brief QAbstractItemModel with a sqlite3 backend.
  */
 
-#ifndef BOOKFILER_WIDGET_TRANSACTION_MODEL_H
-#define BOOKFILER_WIDGET_TRANSACTION_MODEL_H
+#if DEPENDENCY_SQLITE
+#ifndef BOOKFILER_WIDGET_SQLITE_MODEL_H
+#define BOOKFILER_WIDGET_SQLITE_MODEL_H
 
 // config
 #include "../core/config.hpp"
@@ -29,7 +31,7 @@
 #include <QVariant>
 
 // Local Project
-#include "../core/TransactionModelIndex.hpp"
+#include "SqliteModelIndex.hpp"
 
 /*
  * bookfiler - widget
@@ -38,23 +40,36 @@ namespace bookfiler {
 namespace widget {
 
 /*
- * @brief Provides a simple tree model to show how to create and use
- * hierarchical models.
+ * @brief Creates data model that is suited for both table and tree views. Uses
+ * a SQLite3 backend to retrieve data. Typically in-memory sqlite3 databases
+ * will be used. This model is not suited to be used with multiple views because
+ * this model makes transformations to the indexed data for filtering, sorting,
+ * and column re-ordering.
  */
-class TransactionModel : public QAbstractItemModel {
+class SqliteModel : public QAbstractItemModel {
   Q_OBJECT
 private:
   std::shared_ptr<sqlite3> database;
-  std::string tableName, idColumn, parentColumn, viewRootId;
+  std::string tableName, viewRootId;
   std::vector<QVariant> headerList;
   boost::signals2::signal<void(std::vector<std::string>,
                                std::vector<std::string>,
                                std::vector<std::string>)>
       updateSignal;
+  std::map<std::string, std::string> columnMap;
+  std::map<int, int> columnNumMap{{0, 0}, {1, 1}, {2, 2}, {3, 3},
+                                  {4, 4}, {5, 5}, {6, 6}};
+  std::vector<std::pair<std::string, std::string>> sortOrder;
+  std::vector<std::tuple<std::string, std::string, std::string>> filter;
+
+  std::string whereSQLCondition(const std::string &parentId) const;
+  std::string sortSQL() const;
 
 public:
-  TransactionModel(QObject *parent = nullptr);
-  ~TransactionModel();
+  SqliteModel(std::shared_ptr<sqlite3> database_, std::string tableName_,
+              std::map<std::string, std::string> columnMap_,
+              QObject *parent = nullptr);
+  ~SqliteModel();
 
   /* Sets the database to use for the model.
    * @param database mysqlite3 database that this tree widget will be synced
@@ -67,30 +82,21 @@ public:
    * @return 0 on success, else error code
    */
   int setData(std::shared_ptr<sqlite3> database, std::string tableName,
-              std::string idColumn, std::string parentColumn);
+              std::map<std::string, std::string> columnMap_);
 
-  /* @param id the view root. "*" to view all rows with a NULL parent
+  /* Sets the root id for the view.
+   * @param id the view root. "*" to view all rows with a NULL parent
    * @return 0 on success, else error code
    */
   int setRoot(std::string id);
 
-  /* Called when the sqlite3 database is updated by another widget, thread, or
-   * process. Internally, this method will need to ask the model for the list of
-   * QModelIndex that need to be updated.
-   * @param addedIdList a list of id that were added. Only the
-   * row id provided was added, not the children, unless the child id is
-   * also listed
-   * @param updatedIdList a list of id that were updated. Only the
-   * row id provided was updated, not the children, unless the child id is
-   * also listed
-   * @param deletedIdList a list of id that were deleted. Only the
-   * row id provided was deleted, not the children, unless the child id is
-   * also listed
+  /* Sets a map for column number transformation. This is used to re-order
+   * column positions. The pairs are {view column position, data table column}.
+   * @param columnNumMap The column number map
    * @return 0 on success, else error code
    */
-  int updateIdHint(std::vector<std::string> addedIdList,
-                   std::vector<std::string> updatedIdList,
-                   std::vector<std::string> deletedIdList);
+  int setColumnNumMap(std::map<int, int> columnNumMap);
+
   /* Connect a function that will be signaled when the database is updated by
    * this widget
    * @param addedIdList a list of id that were added. Only the
@@ -133,7 +139,7 @@ public:
    * @return 0 on success, else error code
    */
   int setFilter(std::vector<std::tuple<std::string, std::string, std::string>>
-                    sortOrderList);
+                    filterList);
 
   /* Essential QAbstractItemModel methods
    *
@@ -161,9 +167,12 @@ public:
   Qt::ItemFlags flags(const QModelIndex &index) const override;
   bool setData(const QModelIndex &index, const QVariant &value,
                int role = Qt::EditRole) override;
+
+  virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 };
 
 } // namespace widget
 } // namespace bookfiler
 
-#endif // BOOKFILER_WIDGET_TRANSACTION_MODEL_H
+#endif // BOOKFILER_WIDGET_SQLITE_MODEL_H
+#endif
